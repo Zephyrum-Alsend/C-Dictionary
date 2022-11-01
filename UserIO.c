@@ -1,56 +1,24 @@
 #include "UserIO.h"
 
 /*
-char* readLine(const int BUFFER, FILE* stream, bool enforceLimit, const char* repeatPrompt){
-  char inputBuffer[BUFFER];
-  size_t LEN = 0;
+scanLine()
+Prompts the user for a line of text.
 
-  while(true){
-    if( fget(inputBuffer, BUFFER, stream) != NULL ) {
-      LEN = strlen(inputBuffer);
+const char* scanLine(const char* prompt, int buffer);
+prompt    --> string to display to the user before reading input.
+buffer    --> size of string to read. Includes null terminator.
 
-      // Prompt for shorter input if too long
-      if(enforceLimit && LEN >= BUFFER){
-        printf("%s", repeatPrompt);
-        continue;
-      }
-      
-      char outputString[LEN];
+This function prompts the user to enter a line of text, stopping after
+they hit enter. The text entered up to either the buffer limit -1 or \n
+will be copied into input and returned; if the buffer limit was reached,
+stdin is flushed. If fgets() returns NULL, this function returns NULL.
 
-      // Truncate the \n token
-      inputBuffer[LEN-1] = '\0';
-      strcpy(outputString, inputBuffer);
-    
-      return outputString;
-    }
-    // If fget() returns NULL, we return NULL.
-    return NULL;
-  }
-}
+Returns a const char* of size buffer (aka string).
+
+Lucas Crockett
+2022.11.01
 */
-
-// /*
-// scanLine()
-// Prompts the user for a line of text.
-//
-// void scanLine(char* input, const char* prompt, int buffer);
-// input     --> string that will hold the return value.
-// prompt    --> string to display to the user before reading input.
-// buffer    --> size of string to read. Includes null terminator.
-//
-// This function prompts the user to enter a line of text, stopping after
-// they hit enter. The text entered up to either the buffer limit -1 or \n
-// will be copied into input. If fgets() returns NULL, this function changes
-// input to NULL. Stdin is flushed, incase the user entered text beyond the 
-// buffer limit.
-//
-// Returns nothing. Modifies input to hold a return value.
-//
-// Lucas Crockett
-// 2022.11.01
-// */
-void scanLine(char* input, const char* prompt, int buffer) {
-  const int INTERNAL_BUFFER = LINE_MAX;
+const char* scanLine(const char* prompt, int buffer) {
   // Set buffer to the lesser of the two
   buffer = (buffer > INTERNAL_BUFFER) ? INTERNAL_BUFFER : buffer;
 
@@ -60,8 +28,10 @@ void scanLine(char* input, const char* prompt, int buffer) {
   // Read user input
   char inputBuffer[INTERNAL_BUFFER];
   if( fgets(inputBuffer, buffer, stdin) != NULL ) {
-    // Check if the last character is \n, toss it if so
     int lastChar = strlen(inputBuffer) - 1;
+    char input[lastChar+1];
+    
+    // Check if the last character is \n, toss it if so
     if(inputBuffer[lastChar] == '\n') {
       inputBuffer[lastChar] = '\0';
     }
@@ -71,10 +41,11 @@ void scanLine(char* input, const char* prompt, int buffer) {
     }
     
     strcpy(input, inputBuffer);
+    return input;
   }
   // If fgets() returns NULL, set input to NULL
   else {
-    input = NULL;
+    return NULL;
   }
 }
 
@@ -86,20 +57,26 @@ void scanInt(const char* prompt);
 prompt    --> string to display to the user before reading input.
 
 This function prompts the user to enter an integer, stopping after
-they hit enter. Uses scanf() so incorrect inputs will generate garbage
-numbers. Stdin is flushed, incase the user entered text beyond what was 
-asked. The integer parsed is returned.
+they hit enter. Uses scanf() to parse the integer. If parsing fails,
+the return value is set to PARSE_FAIL. Stdin is flushed, as we do 
+not read the whole line. The parsed integer is returned.
 
-Returns an integer.
+Returns an integer. Returns PARSE_FAIL if scanf() failed to parse.
 
 Lucas Crockett
 2022.11.01
 */
 int scanInt(const char* prompt) {
   int input;
+  
   printf("%s", prompt);
-  scanf("%d", &input);
+  // If scanf() fails to parse an integer, set input to PARSE_FAIL
+  if(scanf("%i", &input) <= 0) {
+    input = PARSE_FAIL;
+  }
+  // We're not reading the whole line so flush what remains
   flushStdin();
+  
   return input;
 }
 

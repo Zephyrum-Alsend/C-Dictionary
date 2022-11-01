@@ -3,6 +3,8 @@
 #include <string.h>
 #include "UserIO.h"
 
+const int PARSE_FAIL = 0;
+
 // Prints out the character tokens in a string, to show if \0 is present.
 void testString(char* string, int length);
 
@@ -74,8 +76,9 @@ int main(void) {
   // number = scanInt("Enter:\n");
   // printf("%d", number);
 
-  char* test = getString();
-  printf("%s", test);
+  // char* test = getString();
+  // printf("%s", test);
+  printf("%i", scanInt("Enter number:\n"));
   
   return 0;
 }
