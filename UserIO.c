@@ -1,5 +1,7 @@
 #include "UserIO.h"
 
+const int INTERNAL_BUFFER = LINE_MAX;
+
 /*
 scanLine()
 Prompts the user for a line of text.
