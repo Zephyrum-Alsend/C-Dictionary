@@ -139,6 +139,105 @@ void dictAppend(dict heap1[], size_t size1, dict heap2[], size_t size2, dict hea
 }
 
 /*
+dictCompare()
+Compares 2 dict structs and returns which one is lesser/greater than the other.
+
+int dictCompare(dict* entry1, dict* entry2);
+entry1    --> dict struct to compare.
+entry2    --> dict struct to compare.
+
+This function first checks for NULL values and always sorts non-NULL before NULL.
+Then the function compares dict.words case insensitively, to sort them 
+alphabetically. If they match case insensitive, dict.words are compared case
+sensitively, sorting upper before lower case within the same letter. If 
+the dict.words are identical, dict.lengths are compared. If these, too, are
+identical, the function declares the structs equal. Matching strcmp(), returns
+a negative value if entry1 comes before entry2, 0 if matching, positive otherwise.
+
+Returns an integer whose sign indicates sorting order.
+
+Lucas Crockett
+2022.11.02
+*/
+int dictCompare(dict* entry1, dict* entry2) {
+  // NULL is greater than everything
+  if( entry1 == NULL ) return 1;
+  if( entry2 == NULL ) return -1;
+  
+  int comp = strcasecmp(entry1->word, entry2->word);
+  
+  // If case insensitive .word is the same, compare case
+  if( !comp ) { comp = strcmp(entry1->word, entry2->word); }
+  
+  // If .word is identical, but .length is different
+  if( (!comp) && (entry1->length != entry2->length) ) {
+    comp = (entry1->length > entry2->length) ? 1 : -1;
+  }
+  
+  return comp;
+}
+
+/*
+dictBubbleSort()
+Given the head of a dictionary, sorts it alphabetically, returning the new head.
+
+dict* dictBubbleSort(dict* head);
+head    --> pointer to the start of the dictionary.
+
+This function iterates over the dictionary, swapping adjacent elements as
+necessary, until all elements are sorted alphabetically. Returns the pointer
+to the new head of the dictionary.
+
+Returns a dict struct pointer.
+
+Lucas Crockett
+2022.11.02
+*/
+dict* dictBubbleSort(dict* head) {
+  dict* node;
+  dict* prev;
+  bool swapped;
+
+  // Go through the list at least once
+  do {
+    // Keep going through until nothing's been swapped
+    node = head;
+    prev = NULL;
+    swapped = false;
+    while( node != NULL )   {
+      
+      // If the current node should come after the next node
+      if( dictCompare(node, node->next) > 0 ) {
+        swapped = true;
+        // Check if prev is not NULL
+        if( prev != NULL ) {
+          // Swap node and node->next
+          prev->next = node->next;
+          node->next = node->next->next;
+          prev->next->next = node;
+          node = prev;
+        }
+        else {
+          // Swap node and node->next
+          head = node->next;
+          node->next = node->next->next;
+          head->next = node;
+          node = head;
+          continue;
+        }
+      }
+
+      // Increment indexes
+      prev = node;
+      node = node->next;
+    }
+    
+  } while( swapped );
+  
+  return head;
+}
+
+/*
 dictPrint()
 Given the pointer to a dict struct, prints its contents.
 
