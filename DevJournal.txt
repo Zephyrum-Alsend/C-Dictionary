@@ -454,3 +454,11 @@ Not-so-challenges:
 -With this, I think I'm done
 -Time for one final check
 <<00:17
+
+2022.11.04
+>>11:06
+-Again, with the clarity that comes with sleep, there's some changes I'd like to make
+  -Namely, addressing 0 length entries and duplicates
+-As I've already submitted, I'll be making these changes in a new branch
+-Addressed length 0 entries
+<<11:09
