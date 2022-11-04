@@ -1,0 +1,448 @@
+==============================SUMMARY==============================
+<>2022.10.31
+ ~4.5h
+  -initial planning, research, UserIO.h
+<>2022.11.01
+ ~1h
+  -touch up UserIO.h
+<>2022.11.02
+ ~10h
+  -almost all of Dictionary.h
+<>2022.11.03
+ ~7.5h
+  -finish Dictionary.h, implement core logic, polish documentation
+
+Challenges:
+ +safe UserIO
+ +relearning memory quirks, namely return values going out of scope
+ +properly clearing STDIN
+Not-so-challenges:
+ +core logic
+ +file structure
+ +documentation (detailed docs were tedious tho)
+ +object/pointer manipulation
+===================================================================
+
+2022.10.31
+-Reading over this challenge, it doesn't seem too complex. Not small, but not big either.
+	-Getting a string of indeterminate size in C will be tricky, but can just look it up
+		-fget(char[], buffer, stdin) with LINE_MAX from Limits.h as buffer size is the 
+		 closest we'll get
+			-should I reserve that much space, though?
+	-Linked list is just going to be structs including a Next pointer, save the Start pointer
+		-sort can be a simple bubble sort, but it is slow
+		-if I use more memory to temp store pointers in an array, could possibly do radix sort?
+			-only recently researched the implementation of radix sort, ~90% understand it
+		-most memory efficient I can think of is basically bubblesort
+		-could implement both?
+	-post init options can just be a numbered menu
+		1. input new sentence
+		2. search (case sensitive)
+		3. search (case insensitive)
+		etc.
+		-scanf("%d", &num)
+	-documentation is pretty much what I did for Dusfergon+Zefiros, with more precise time logs
+	-As all the above was thinking about it, precise timing is... difficult
+	-This really just leaves string parsing as the only part without a plan
+		-There should be a function to split on spaces
+>>12:58
+-googling how to split a C string
+	-strok() is thread unsafe, noted
+	-strsep()/strbrk() are the library functions to use
+	-Otherwise, I just code my own function to split strings
+<<13:03
+>>13:10
+	-strsep() looks useful, but may not be implemented on windows
+		-depends on Replit.com's environment
+		-strbrk() should be used instead, if so
+	-code snippet demonstrating strsep() usage:
+	 while( (found = strsep(&string," ")) != NULL )
+        	printf("%s\n",found);
+	-strbrk() is actually strpbrk()
+	-strpbrk() is a more complicated findFirstInstance type function, can work but more steps
+	 than strsep()
+<<13:20
+>>13:35
+-Set up Replit account with personal GitHub account
+-Time to consider the file structure...
+-Because C is not object-oriented, following those principals will be a little rough
+-What kind of "classes" do we need?
+	-UserIO
+	-String parser
+	-Dictionary
+	-Menu
+	-Sorting algorithm(s)
+-File naming and contents
+	-UserIO.h
+		-Show prompt
+		-Get string from user, "unlimited" length
+		-Get specific input (menu)
+	-Parser.h
+		-String split
+	-Dictionary.h
+		-#include "Parser.h"
+		-#include "LinkedListSort.h"
+		-Dict init
+		-Dict search
+		-Dict append
+		-Dict sort
+	-LinkedListSort.h
+		-bubble sort for linked lists
+		-radix sort for linked lists?
+-Testing if Replit has strsep()
+	-Replit supports strsep()
+-File setup really lends itself to MVC, huh?
+-Parser.h could be rolled into Dictionary.h, basically just strsep loop
+	-Not sure how to handle the return value, unspecified number of words afterall
+	-Researching how strsep() operates
+	-It modifies the passed string by replacing the delimiter with null tokens
+		-Tested in Replit, string becomes the remaining second half of its former self
+	-Creating each Dict struct inside the strsep() loop would be easier
+	-Maybe Paser.h returns a linked list?
+	-For future use, it would be nice to build up Parser.h as a parsing library
+		-That's why I'm trying to make it work
+	-Gonna break for now, active thought showing diminishing returns,
+	 let subconscious take over mulling it
+<<14:13
+>>15:00
+-The function would take a string and delimiter, like strsep(), but return a list of substrings
+	-The problem is not knowing how many or how long the substrings are
+	-strdup() can handle unknown substring length
+	-I'd need to implement vectors in C
+	-Not comfortable with the memory management required just for a reusable function
+	-Gonna shelf Parser.h for now and do the easy route of using strsep() directly
+<<15:02
+>>22:17
+-Started implementation of UserIO.h
+-Began testing fget() in main.c
+	-Terminates on \n, but also includes it in response
+-scanf("%[^\n]%*c", userInput) can read a line, too, and throws out the \n token
+-Brain's definitely slowed down, this late
+-The question is: do I work with fget() or scanf()?
+	-Same principle as Parser.h, fget() seems more proper long run but has a tricky problem
+	-...or does it? If I capture fget()'s return instead of tossing it in an if(), we could
+	 have a string that terminates at it's appropriate length.
+	-The unstated problem was that I need to chop the \n off, but don't know where it is since
+	 the \0 is in the middle of userInput[LINE_MAX] somewhere, rather than at the end.
+	 scanf() would be faster overall, since I'd need to search for the \n in fget().
+	 But, fget() is safer since it has a declared buffer limit.
+	-Wait, I can just use strsep()...
+		-gives a seg fault :(
+	-If I transfer inputBuffer to a char* with strdup, I can then truncate the \n with strsep()
+	-This feels like an awful lot of work compared to scanf()... gonna look up scanf() vs fget()
+		-scanf() doesn't have a buffer limit, which may or may not be a problem
+		-But scanf() can preformat input, which saves steps compared to fget()
+		-But some comments mentioned sscanf()...
+	-So, I have two methods to clip the \n character off
+		-char* userInput = strdup(inputBuff);
+		 userInput = strsep(&userInput, "\n");
+		-char userInput[strlen(inputBuff)];
+		 sscanf(inputBuff, "%[^\n]%*c", userInput);
+	-Now which is faster?
+	-Actually, why don't I look up functions to copy part of a string?
+		-strdup() can cause a memory leak, noted
+		-strncpy() can copy just a specific amount
+			-Have it copy strlen()-1, which would truncate the \0, but now we can replace
+			 userInput[strlen()-2] with \0, usurping the \n.
+-Gonna get some water
+<<23:24
+>>00:24
+	-The strncopy() method should be faster because sscanf() and strsep() should need to search
+	 for the \n, while the former assumes its position
+	-At this point, I can use strlen() to overwrite the \n directly in inputBuff
+	-I have my method to remove the \n from fget()
+		-inputBuff[strlen(inputBuff)-1] = '\0';
+	-Looked at documentation for how big LINE_MAX actually is, didn't specify. But did specify it
+	 was in the context of reading files. So, looked up max input size of stdin: infinite
+	-Effective infinite rather than true infinite, either way scanf() doesn't seem so problematic
+	 now.
+	-Well, either way, I can just code both implementations in UserIO.h
+-Had to refresh myself on exact syntax of declaring functions in .h and implementing in .c
+-C doesn't support default arguments!
+-Well, not directly. I found a stack overflow post detailing a roundabout method, pretty creative.
+	-We basically need to create a wrapper function to deliver defaults incase of null, then
+	 a macro so that we can use the same signature and it looks like not a wrapper
+-These macros are going to take a while to digest, and it is past 0100... gonna put this on pause
+-Implemented basic functions to read a line of text and an integer after displaying a prompt.
+-Line reader requires user to prepare large enough character array in advance.
+-Redid scanLine() to use fgets() instead of scanf() but we run into an issue when the user input is
+ longer than the buffer size. It leaves residue in stdin that screws up the next scan.
+-Online answers were either to use long macros or scanf("%*[^\n]\n")
+	-scanf("%*[^\n]\n") did not work, but scanf("%*[^\n]") does
+-Put the flush line into it's own function, flushStdin()
+-Gonna do some in-code documentation and call it a night
+-I'm starting to think I can and should return a char* instead of putting it into a passed pointer
+	-So many STD functions modify a passed pointer for strings, but that doesn't mean it's
+	 impossible, right?
+-Documentation on present functions are done.
+-I can return strings, but I need to properly define the size in function.
+<<03:00
+
+2022.11.01
+>>13:02
+-Rewrote scanLine() to return a const char* instead of modifying a passed pointer.
+-scanInt() has potential for error, so why don't I just use scanLine() and then sscanf()?
+-Looking up documentation for "%*[^\n]", want to reformat it to look for just an integer.
+-BRBathroom
+<<13:17
+>>13:30
+-It occurs to me that I could try making wrapper functions with the same name, but different
+ signatures to emulate optional parameters.
+	-Let's make that a stretch goal, I've spent a day on UserIO.h alone already.
+-I found docs for scanf(), but can't think of a way to parse an integer from anywhere in stdin.
+-Reverted to using just scanf() directly, but added a check for parse failure, thanks to now knowing
+ what scanf() returns.
+-Decided to use a global to denote the parse failure value. That way, main.c only need declare the
+ extern declaration, meaning any changes to PARSE_FAIL in UserIO.c will be automatically reflected.
+	-Maybe I should define PARSE_FAIL in main.c rather than UserIO.c? Then future developers
+	 will not need to edit UserIO.c to change it's value. Y'know, SOLID principles.
+-OK, I think that's enough for UserIO. I could do more, but we're functional and can handle common
+ user errors.
+<<13:58
+
+2022.11.02
+>>12:23
+-Migrating test code in main.c to test.h, cleaning up main.c without having to delete test code.
+-Looks like #pragma once does not work in Replit... searching for why
+	-The problem was I defined a constant in UserIO.h, needed to move definition to UserIO.c
+-I'd like to make and test the sorting algorithm next, but I need to make the dict first to test it
+ on, so that's what's next.
+-I need to declare and define the dict struct first, then implement functions to work on/with it.
+<<13:25
+>>13:55
+-Copying passed string into a new char array to pass into strsep() so original isn't modified
+	-intellisense gives it a yellow line, so going to test it out in strsep()
+-Long story short, my getString() in test.c was getting close to garbage, making all strsep() tests
+ effectively fail. scanLine() from UserIO.h works just fine, though.
+-If I copy the string into a new char array, I then need a new pointer to point to that new char 
+ array or else we get a segfault when calling strsep() on it. The new char array gets altered.
+-If we point the pointer to the original string, that gets altered.
+-So, to preserve the original string, I need to copy it into a new char array then make another 
+ pointer to point to the new array. More variables than strdup() but strdup() can cause memory leaks.
+-Now to make a linked list of dicts.
+-I think, in order to make new entries in the list without malloc(), I'll need to make a function to
+ create dict structs.
+-Tested strncpy() with char arrays that did and did not include space for a \0.
+	-\0 gets added to the position just beyond the array's end.
+<<14:43
+>>14:50
+-Finished dictInit(), initial test threw no errors, now to print the linked list to verify contents.
+-Structs have to be defined in the header file, and due to the constant declaration issues, dict's
+ definition had to be changed a little.
+-Running test returns from the function then segfaults while printing the first dict's contents.
+	-Probably missed a tweak in Dictionary.c
+-Wrote a function to print contents of dict struct.
+-When creating dicts, things look alright.
+-When examining the linked list, pointers look a bit off. Will try to print list in test.c again.
+-I do believe that for entries after the first, their nexts are pointing to themselves.
+-So, the issue is that the local pointers aren't preserved upon returning, giving invalid or
+ circum-referential behavior. What I've researched suggests either using global/static variables
+ or creating an array to hold the linked list.
+	-...which squarely leads me back to the first day of pondering how many words we have.
+-Well, I can use strsep() on the duplicate string to count words, then initialize an array to hold
+ the linked list, then populate that array. So... if I make each element in the array point to the
+ next element, then return the first element, would that work?
+-I'm going to take a break
+<<16:01
+>>16:15
+-Internally, I have the pointers working thanks to allocating an array first. The problem is 
+ returning the array. In the end, I may just need to pass in a predefined array and modify that.
+-By shifting dictPrint() to the end of dictInit(), I was able to see each element was overwritten,
+ so I guess making a function to create individual elements is off the table.
+-Not using the function still overwrites each element.
+-Rather than using an array of pointers, making an array of actual dicts and directly operating on
+ the array's elements instead of copying a reusable dict variable into each slot resolved the 
+ overwriting problem.
+-But only part of the data survives returning. The length and pointer still persist, but the char
+ array is blank.
+	-Tested each pointer individually, some do retain the char array's contents but all retain
+	 their lengths and nexts, AND each pointer still works!
+-Printing the linked list via a while loop either seg faults or infinite loops.
+	-Printing elements individually works, as mentioned above.
+	-Might have to do with the borked char arrays inside?
+	-Not printing the char array does not change behavior
+	-Here's the loop, because I really don't see a problem with this:
+	  dict* nex = head;
+	  while( nex != NULL ) {
+	    dictPrint(nex);
+	    nex = nex->next;
+	  }
+	-Reminder that the following works:
+	  dictPrint(head->next->next->next);
+-Time let it stew for a while
+<<17:25
+>>19:14
+-So, I'm going to make 2 new functions
+	-dictInit2(), which modifies a passed in array instead of returning one
+	-countWords(), because I'm going to need that to allocate heap and it may revive Parser.h
+-Declaring the dict array outside the function worked! The while loop printing even works, too!
+-Deleted original dictInit() and left dictCreate() functions, might be useful later.
+-Right, now I can do sorting.
+-The linked list is technically already an array, so I could do radix sort...
+-Bubble sort first, do what you know works before trying something new.
+-I'd like to put the sorting functions in their own header file, but we're sorting a struct so it
+ makes more sense to include it in Dictionary.h
+	-I know you can define comparison operators in C++, but I don't know anything about that in C
+-Actually, let's implement dictAppend() next, it should be simple.
+	-Init a new dict array, then combine the two.
+		-But what about the local variable life time stuff...
+		-Of course it involves malloc()
+		-Dynamic memory is off limits, so... init new array outside and combine in function?
+	-tbh this isn't a dict specific function, as it's just moving 2 arrays into a bigger array
+	-The question is if I can get away with declaring the bigger array IN function...
+-dictAppend()'s done, but it's uglier than I'd like.
+	-All it does is copy arr1 and arr2 into arr3, but 5 parameters, ugh
+-Working on dictSearch() because it also seems easy. Well, the case sensitive one, anyway.
+-dictSearch() works, returns NULL if it found nothing, otherwise returns a pointer to the dict struct
+-I was going to implement my own case insensitive search, because ASCII upper/lower are 32 apart
+-But strcasecmp() exists on UNIX C, and since Replit supports strsep() (also UNIX C), I'm going to
+ use the STL implementation. STL is probably faster than anything I come up with.
+-Replit supports strcasecmp(), made dictCaseSearch() to utilize it.
+-After the fact, a bit uncomfortable with duplicating code. Going to combine functions and add a
+ bool parameter to toggle case sensitivity.
+-Implemented the case sensitivity flag in dictSearch().
+-Should be just the sort and menu, huh.
+-Ah, I forgot about deleting. I assumed dictInit() would handle that, but not anymore, huh?
+-Guess I'll do some docs then call a short break.
+	-Dictionary.h is already commented, but Dictionary.c has no header docs.
+	-Proper documentation takes so long, gonna extend that break
+-I could probably rewrite dictAppend to only interact with the actual linked list, rather than the
+ arrays.
+	-Set last element of heap1's .next to the first element of heap2 and you've linked the lists
+	 with no additional memory allocation!
+	-That could cause complications in sorting, though.
+	-Actually, that might throw radix sort right out the window.
+	-Bubble sort should still be possible.
+-THERE. Dictionary.c documentation DONE. Break time.
+<<21:30
+>>23:35
+-Since it feels like it defeats the purpose of the challenge to sort the dictionary as an array,
+ I will be treating it as a linked list and only telling the function the head.
+-Renamed function to dictBubbleSort(), incase I implement radix sort separately.
+-Thinking about how many passes bubble sort will need to complete... I am tempted to try radix sort.
+	-Bubble first. Do the easy path first, get something working. Can make it work well later.
+		-...As long as the foundations aren't too crap.
+-The prompt states "sort the list alphabetically by reassigning pointer links."
+	-so radix sort is probably impossible. Well, with some temp arrays, maybe.
+		-Still feels like too much trouble but damn is it tempting.
+-I really wish I had an overload for the comparison operators, would make sorting code a lot simpler.
+	-As I thought, C doesn't support operator overloading...
+	-I can still make a comparison function, though
+-First run of bubble sort gives a seg fault, ok
+-Seems like the error is at swapping around the tail/NULL?
+-Changing the loop conditon from node != NULL to node->next != NULL solved the seg fault
+-Now it doesn't look like it's sorting properly...
+	-There is some swapping, but also not really?
+	-If it's in reverse order, seg fault
+	-If it's already sorted, fine
+	-Tried reverse order 2 element dictionary, seg fault
+	-Definitely seems like it's related to NULL pointers
+-There were 2 problems
+	-Forgot to reset node pointer after each iteration of whole list
+	-Forgot to account for comparing dict w/ NULL in comparison function
+-It runs mostly fine, but hung on the 4 element reverse order dictionary
+<<01:08
+>>01:50
+-First looking at print statements, then stepping through, a circular linked list is forming somehow
+-There were 3 problems
+	-Forgot to reset prev pointer after each iteration of whole list
+-This is why coding ALL day is generally a bad idea, stupid oversights that cost hours
+-Interesting error, all capital letters sort to before lower case.
+	-I understand why, ascii codes, just surprised strcmp() doesn't handle this
+-strcasecmp() followed by strcmp() if the former returns 0 fixes issue
+-Bubble sort is done, now all that's left is delete, menu, and tidying up.
+-Rewriting dictAppend() to work with just the pointers, no array copying
+-dictAppend2() is born and tested
+-Doesn't look like there's a way to delete declared arrays in C.
+-I wonder if I can declare arrays via pointers?
+	-int* arr = int[30]; kinda deal
+-Looks like I can redefine array length with just:
+ int heap[30];
+ heap[20];
+-I still have to deal with junk data in new spaces, but that lets me free up memory
+	-I don't actually know if the compiler will free up the unused memory, but worth a shot
+-Seeing how the truncated data is left alone (at least initially), I'm starting to feel like
+ array sizes in C are just suggestions.
+-Either way, now's a good time to call it a night (or break)
+-Delete, menu, and final documentation tomorrow!
+<<03:49
+
+2022.11.03
+>>10:33
+-With fresh sleep, it occurs to me that expanding array sizes willy nilly could overwrite memory
+ in use, rather than just junk data. Looks like I'll need a big heap to pull from afterall.
+-Since dictInit() works on the array, not the linked list, I'll check if passing in not the 0th
+ index has the desired effect of populating the middle of the array.
+-It does have the desired effect, so as long as I keep track of what's populated, I don't need
+ to make new arrays.
+-I am also tempted to rewrite init to work with just the linked list, so I'll think about it.
+-Deletion will require shifting elements in the array to make space, so that'll be a place where
+ I cannot just treat the heap as a linked list.
+	-Wait a minute, doc says "initialize" which means delete everything, that's easy!
+-After thinking about, I'm inclined to leave dictInit() as is, modifying via array indexes.
+	-This way, I can truncate input so we don't go over the heap limit.
+-dictClear() was easy to document.
+-Time to hape dictAppend2() usurp dictAppend()
+-Documentation updated
+-All that's left is logic for the menu and final documentation
+<<11:05
+>>11:44
+-Thinking how I'm going to do the main.
+	-Could write the core logic main.c
+	-Or write a new file with a sub-main, like test.h
+-Sub-main feels like better practice.
+-Creatively named new file submain.h
+<<12:10
+>>13:45
+-Have a switch table set up for the menu, testing
+-Getting a number works, exit works, delete works, search is being odd
+	-Shows the prompt, does not take input from the user before returning
+	-It's scanLine(), which works in an earlier line
+		-don't tell me fgets() only reads the first time...
+	-The problem is because scanInt() uses scanf(), there's a \n left in stdin which fgets()
+	 sees and immediately returns on
+		-but I should have flushed stdin...?
+	-So, can't find a way to tweak flushStdin() that resolves the issue, therefore I now need
+	 to rewrite scanInt().
+	-Testing the ordering, it is indeed scanf() that's messing up fgets() and flushStdin()
+	 isn't helping here.
+		-There's 2 ways, I fgets() twice after scanf() usage, or rewrite scanInt() to use
+		 fgets().
+	-So, couple things:
+		-Rewrote scanInt() to use fgets()
+		-Tweaked flushStdin(), it works, kinda
+			-If there's actually leftover stuff in stdin, flush works
+			-If it's empty, we bork the next fgets() call
+			-So, only call flushStdin() when you know input went over the buffer
+	-There's edge cases where if the input is exactly the length of the buffer, we get skipped
+	 inputs on subsequent fgets().
+-Been fiddling with this conditional for flushStdin() for a long time, it currently fixes every case
+ but the one were there's only a '\n' left in stdin.
+-Gonna break, that tends to help long term
+-Scrapped scanf() entirely in flushStdin(), replaced with a while(getchar() != \n||EOF) and it WORKS
+<<16:18
+>>17:08
+-Search options are operational
+-Formatted output text to be more readable
+-All that's left is append option and (again) final docs
+<<17:30
+>>18:40
+-Implemented display option to assist testing
+-Implemented append option
+-Tested adding beyond HEAP_SIZE, under HEAP_SIZE, to HEAP_SIZE, and appending after clearing data
+-Modified dictAppend() to return a pointer, as it wasn't modifying head1 if head1 == NULL
+-This concludes the append option, which spec sheet withstanding, is all the required functionality
+-One last pass over code documentation, then I'll create the ReadMe and address the other questions
+-dictCreate goes completely unused, should get rid of it
+-Document check is complete.
+-Looking at the spec sheet, it's the ReadMe and questions left to make.
+<<20:31
+>>22:17
+-ReadMe is mostly done, noting some QoL tweaks I can still give the code
+-GitHub borks newlines, so formatting isn't quite what I'd like it to be.
+	-Entered extra newlines for the important breaks, but otherwise left it as is.
+-Now to answer the questions... here or elsewhere?
+-Reading the spec sheet, seems they expect it all in one doc. Everything.
+-Not gonna do that.
+-But I will put all the files together.
+-There, now everything's together.

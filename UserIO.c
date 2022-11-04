@@ -102,6 +102,7 @@ Lucas Crockett
 2022.11.01
 */
 void flushStdin() {
+  printf("Buffer reached, input may be partially ignored.\n");
   // Read and throw out everything in stdin
   int ch;
   while( ((ch = getchar()) != '\n') && (ch != EOF) );
