@@ -3,38 +3,12 @@
 const int WORD_SIZE = 4;
 
 /*
-dictCreate()
-Given a string, creates and populates a dict struct.
-
-dict dictCreate(const char* string);
-string    --> word to turn into a dict struct.
-
-This function extracts the first WORD_SIZE characters and total length from
-string and usese these values to initialize a dict struct. dict.next is left NULL.
-Returns the newly created dict struct.
-
-Returns a dict struct.
-
-Lucas Crockett
-2022.11.02
-*/
-dict dictCreate(const char* string) {
-  dict d;
-  d.length = strlen(string);
-  strncpy(d.word, string, WORD_SIZE);
-  d.next = NULL;
-  
-  //dictPrint(&d);
-  return d;
-}
-
-/*
 dictInit()
 Given a string, dict array, and the array's size, populates the dictionary.
 
 void dictInit(const char* string, dict heap[], size_t size);
 string    --> line of text to turn into a dictionary (linked list of dicts).
-heap      --> preallocated and initialized memory for the linked list.
+heap      --> preallocated memory for the linked list.
 size      --> number of elemnets heap can store.
 
 This function uses strsep() to parse the individual words from string and then
@@ -48,7 +22,7 @@ Returns nothing. Modifies heap.
 Lucas Crockett
 2022.11.02
 */
-void dictInit(const char* string, dict heap[], size_t size) {
+dict* dictInit(const char* string, dict heap[], size_t size) {
   // This ensures string isn't modified
   char sentence[strlen(string)+1];
   strcpy(sentence, string);
@@ -56,6 +30,7 @@ void dictInit(const char* string, dict heap[], size_t size) {
   char* word;
 
   for(int i = 0; i < size; i++) {
+    // Assumes size is also the word count (see Parser::countWords())
     word = strsep(&sent, " ");
     heap[i].length = strlen(word);
     strncpy(heap[i].word, word, WORD_SIZE);
@@ -63,6 +38,33 @@ void dictInit(const char* string, dict heap[], size_t size) {
     heap[i].next = &heap[i+1];
   }
   heap[size-1].next = NULL;
+
+  dict* head = &heap[0];
+  return head;
+}
+
+/*
+dictClear()
+Given a dict array and its size, NULLs all elements in the array.
+
+void dictClear(dict heap[], size_t size);
+heap      --> allocated memory for the linked list.
+size      --> number of elemnets heap can store.
+
+This function iterates through every element in heap and sets their contents to
+0/NULL.
+
+Returns nothing. Modifies heap.
+
+Lucas Crockett
+2022.11.03
+*/
+void dictClear(dict heap[], size_t size) {
+  for(int i = 0; i < size; i++) {
+    heap[i].length = 0;
+    heap[i].word[0] = '\0';
+    heap[i].next = NULL;
+  }
 }
 
 /*
@@ -86,14 +88,17 @@ Lucas Crockett
 2022.11.02
 */
 dict* dictSearch(const char* string, dict* head, bool caseSensitive) {
-  dict* node = head;
   int len = strlen(string);
   char comp[WORD_SIZE+1];
-  strncpy(comp, string, WORD_SIZE);
+  strncpy(comp, string, WORD_SIZE+1);
   
+  dict* node = head;
   while( node != NULL ) {
-    if( (node->length == len) && 
+    // If the same length
+    if( (node->length == len) &&
+      // and first WORD_SIZE characters match, case sensitive
       ( (caseSensitive && !strcmp(node->word, comp)) ||
+      // or first WORD_SIZE characters match, case INsensitive
         (!caseSensitive && !strcasecmp(node->word, comp)) ) ) {
       return node;
     }
@@ -105,37 +110,34 @@ dict* dictSearch(const char* string, dict* head, bool caseSensitive) {
 
 /*
 dictAppend()
-Given the heaps for 2 dictionaries and their sizes, combines them into a third heap.
+Given the heads of 2 dictionaries, links them into one list.
 
-void dictAppend(dict heap1[], size_t size1, dict heap2[], size_t size2, dict heap3[]);
-heap1    --> allocated memory of the first dictionary.
-size1    --> number of elements in the first dictionary.
-heap2    --> allocated memory of the second dictionary.
-size2    --> number of elements in the second dictionary.
-heap3    --> allocated memory of the third dictionary, assumed to be combined size of 
-             first two.
+dict* dictAppend(dict* head1, dict* head2);
+head1    --> pointer to the start of the first dictionary.
+head2    --> pointer to the start of the second dictionary.
 
-This function copies the contents of heap1 and heap2 into heap3, correcting the links
-in heap3 to point to their new addresses.
+This function iterates through the first dictionary until it finds the last element,
+then it links said element to head2. Returns the head of the combined list.
 
-Returns nothing. Modifies heap3.
+Returns a pointer to a dict struct, namely the head of the combined linked list.
 
 Lucas Crockett
 2022.11.02
 */
-void dictAppend(dict heap1[], size_t size1, dict heap2[], size_t size2, dict heap3[]) {
-  // Copy heap1 into heap3
-  for(int i = 0; i < size1; i++) {
-    heap3[i] = heap1[i];
-    heap3[i].next = &heap3[i+1];
+dict* dictAppend(dict* head1, dict* head2) {
+  // Shortcuts for NULL pointers
+  if( head1 == NULL ) { return head2; }
+  if( head2 == NULL ) { return head1; }
+  
+  dict* node = head1;
+  // Traverse up to the final node in the first dictionary
+  while( node->next != NULL ) {
+    node = node->next;
   }
-  // Copy heap2 into heap3, after heap1's data
-  for(int i = 0; i < size2; i++) {
-    heap3[i+size1] = heap2[i];
-    heap3[i+size1].next = &heap3[i+size1+1];
-  }
-  // Set last element's .next to NULL
-  heap3[size1+size2-1].next = NULL;
+  // Link final node to start of second dictionary.
+  node->next = head2;
+
+  return head1;
 }
 
 /*
@@ -161,8 +163,8 @@ Lucas Crockett
 */
 int dictCompare(dict* entry1, dict* entry2) {
   // NULL is greater than everything
-  if( entry1 == NULL ) return 1;
-  if( entry2 == NULL ) return -1;
+  if( entry1 == NULL ) { return 1; }
+  if( entry2 == NULL ) { return -1; }
   
   int comp = strcasecmp(entry1->word, entry2->word);
   
@@ -217,6 +219,7 @@ dict* dictBubbleSort(dict* head) {
           prev->next->next = node;
           node = prev;
         }
+        // node == head
         else {
           // Swap node and node->next
           head = node->next;
@@ -244,8 +247,8 @@ Given the pointer to a dict struct, prints its contents.
 void dictPrint(dict* entry);
 entry    --> pointer to a dict struct.
 
-This function displays the contents of entry with printf(). If the passed pointer isn't
-valid, prints "NULL".
+This function displays the contents of entry with printf(). If the passed 
+pointer isn't valid, prints "NULL".
 
 Returns nothing.
 
@@ -254,7 +257,7 @@ Lucas Crockett
 */
 void dictPrint(dict* entry) {
   if(entry) {
-    printf("Entry:\nlength->%d\nword->%s\nnext->%p\n", entry->length, entry->word, entry->next);
+    printf("---Entry---\nlength -> %d\nword   -> %s\nnext   -> %p\n", entry->length, entry->word, entry->next);
     return;
   }
   printf("NULL\n");

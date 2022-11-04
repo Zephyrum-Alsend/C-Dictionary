@@ -1,17 +1,11 @@
 {
   "files": {
-    "Dictionary.c": [
+    "submain.c": [
       {
-        "id": "5465e90b-fc67-4b54-8596-dd76b86222ec",
-        "line": 169,
-        "version": 7346,
-        "index": 4931
-      },
-      {
-        "id": "9f2fb701-03ec-460d-b497-cd87da8ec239",
-        "line": 192,
-        "version": 7342,
-        "index": 5600
+        "id": "58a3ebc0-bb05-407b-9bb7-d9b2c4f0456c",
+        "line": 73,
+        "version": 3401,
+        "index": 2160
       }
     ]
   }

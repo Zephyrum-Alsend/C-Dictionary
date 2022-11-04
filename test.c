@@ -95,16 +95,32 @@ void test() {
   /////////////////////////////////////////////////////////////////////////////
   // char* test = "This is a sentence.";
   // size_t size = countWords(test);
-  // dict heap[size];
-  // dictInit(test, heap, size);
+  // dict heap[size+4];
+  // dictInit(test, &heap[2], size);
+  // // printArr(heap, 2);
+  // // heap[size];
+  // printf("\n//////////////////////\n\n");
+  // printArr(heap, size+2);
+  // printf("\n//////////////////////\n\n");
+  // dictClear(heap, size+4);
+  // printArr(heap, size+4);
+  // printf("\n//////////////////////\n\n");
 
   // char* test2 = "Also a sentence.";
   // size_t size2 = countWords(test2);
   // dict heap2[size2];
+  // // heap2[size];
   // dictInit(test2, heap2, size2);
 
-  // dict heap3[size+size2];
-  // dictAppend(heap, size, heap2, size2, heap3);
+  // // dict heap3[size+size2];
+  // // dictAppend(heap, size, heap2, size2, heap3);
+  // // dictAppend2(&heap[0], &heap2[0]);
+  
+  // dict* node = &heap[0];
+  // while(node != NULL) {
+  //   dictPrint(node);
+  //   node = node->next;
+  // }
   
   // dict* search = dictSearch("sEntence.", heap3, true);
   // dictPrint(search);
@@ -112,26 +128,36 @@ void test() {
   // dictPrint(search);
   /////////////////////////////////////////////////////////////////////////////
   
-  char* sortest = "aaaa aaa aa a";
-  // char* sortest = "a aa aaa aaaa";
-  // char* sortest = "aa a aaaa aaa";
-  // char* sortest = "aaaa aaa";
-  // char* sortest = "a B c d E f g";
-  // char* sortest = "B a c d E g f";
-  // char* sortest = "Bb bB A a c d E g f";
-  size_t sortize = countWords(sortest);
-  dict sortheap[sortize];
-  dictInit(sortest, sortheap, sortize);
+  // char* sortest = "aaaa aaa aa a";
+  // // char* sortest = "a aa aaa aaaa";
+  // // char* sortest = "aa a aaaa aaa";
+  // // char* sortest = "aaaa aaa";
+  // // char* sortest = "a B c d E f g";
+  // // char* sortest = "B a c d E g f";
+  // // char* sortest = "Bb bB A a c d E g f";
+  // size_t sortize = countWords(sortest);
+  // dict sortheap[sortize];
+  // dictInit(sortest, sortheap, sortize);
 
-  dict* head = dictBubbleSort(sortheap);
-  printf("\n//////////////////////////////\n\n");
+  // dict* head = dictBubbleSort(sortheap);
+  // printf("\n//////////////////////////////\n\n");
   
-  dict* node = head;
-  while(node != NULL) {
-    dictPrint(node);
-    node = node->next;
-  }
+  // dict* node = head;
+  // while(node != NULL) {
+  //   dictPrint(node);
+  //   node = node->next;
+  // }
   /////////////////////////////////////////////////////////////////////////////
+
+  char* input;
+  // input = scanLine("input\n", 40);
+  // printf("%s\n", input);
+  int x = scanInt("number\n");
+  printf("%d\n", x);
+  input = scanLine("input\n", 40);
+  printf("%s\n", input);
+  // input = scanLine("input\n", 40);
+  // printf("%s\n", input);
 }
 
 char* getString() {
@@ -168,4 +194,10 @@ void testString(char* string, int length){
     c ? printf("'%c' ", c) : printf("'\\0' ");
   }
   printf("\n");
+}
+
+void printArr(dict arr[], size_t size) {
+  for(int i = 0; i < size; i++) {
+    dictPrint(&arr[i]);
+  }
 }

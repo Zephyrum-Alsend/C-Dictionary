@@ -33,22 +33,22 @@ const char* scanLine(const char* prompt, int buffer) {
     int lastChar = strlen(inputBuffer) - 1;
     char input[lastChar+1];
     
+    // If the user entered more than the buffer allowed, stdin needs cleaning
+    if ( strlen(inputBuffer) >= (buffer-1) &&
+         inputBuffer[buffer-2] != '\n' ) {
+      flushStdin();
+    }
+    
     // Check if the last character is \n, toss it if so
     if(inputBuffer[lastChar] == '\n') {
       inputBuffer[lastChar] = '\0';
-    }
-    // If the user entered more than the buffer allowed, stdin needs cleaning
-    else {
-      flushStdin();
     }
     
     strcpy(input, inputBuffer);
     return input;
   }
   // If fgets() returns NULL, set input to NULL
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 /*
@@ -69,16 +69,22 @@ Lucas Crockett
 2022.11.01
 */
 int scanInt(const char* prompt) {
-  int input;
+  int input = PARSE_FAIL;
   
   printf("%s", prompt);
-  // If scanf() fails to parse an integer, set input to PARSE_FAIL
-  if(scanf("%i", &input) <= 0) {
-    input = PARSE_FAIL;
+
+  // If fails to parse an integer, set input to PARSE_FAIL
+  char inputBuffer[INTERNAL_BUFFER];
+  if( fgets(inputBuffer, INTERNAL_BUFFER, stdin) != NULL ) {
+    // input is left as PARSE_FAIL if no integer is parsed
+    sscanf(inputBuffer, "%i", &input);
+
+    // If the user entered more than the buffer allowed, stdin needs cleaning
+    if ( strlen(inputBuffer) >= (INTERNAL_BUFFER-1) &&
+         inputBuffer[INTERNAL_BUFFER-2] != '\n' ) {
+      flushStdin();
+    }
   }
-  // We're not reading the whole line so flush what remains
-  flushStdin();
-  
   return input;
 }
 
@@ -88,7 +94,7 @@ Clears stdin.
 
 void flushStdin();
 
-This function uses scanf() to read and toss the remaining text in stdin.
+This function uses getchar() to read and toss the remaining text in stdin.
 
 Returns nothing.
 
@@ -97,5 +103,6 @@ Lucas Crockett
 */
 void flushStdin() {
   // Read and throw out everything in stdin
-  scanf("%*[^\n]");
+  int ch;
+  while( ((ch = getchar()) != '\n') && (ch != EOF) );
 }

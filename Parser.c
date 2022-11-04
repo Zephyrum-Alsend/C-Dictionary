@@ -25,7 +25,7 @@ unsigned int countWords(const char* string) {
   strcpy(sentence, string);
   char* sent = sentence;
 
-  // Get the word count so we can allocate space
+  // Get the word count
   char* word;
   while( (word = strsep(&sent, " ")) != NULL) {
     wordCount++;

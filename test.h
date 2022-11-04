@@ -13,6 +13,8 @@ extern const int PARSE_FAIL;
 
 void testString(char* string, int length);
 
+void printArr(dict arr[], size_t size);
+
 char* getString();
 
 void test();
