@@ -9,7 +9,7 @@
  ~10h
   -almost all of Dictionary.h
 <>2022.11.03
- ~7.5h
+ ~8h
   -finish Dictionary.h, implement core logic, polish documentation
 
 Challenges:
@@ -382,13 +382,13 @@ Not-so-challenges:
 -After thinking about, I'm inclined to leave dictInit() as is, modifying via array indexes.
 	-This way, I can truncate input so we don't go over the heap limit.
 -dictClear() was easy to document.
--Time to hape dictAppend2() usurp dictAppend()
+-Time to have dictAppend2() usurp dictAppend()
 -Documentation updated
 -All that's left is logic for the menu and final documentation
 <<11:05
 >>11:44
 -Thinking how I'm going to do the main.
-	-Could write the core logic main.c
+	-Could write the core logic in main.c
 	-Or write a new file with a sub-main, like test.h
 -Sub-main feels like better practice.
 -Creatively named new file submain.h
@@ -446,3 +446,11 @@ Not-so-challenges:
 -Not gonna do that.
 -But I will put all the files together.
 -There, now everything's together.
+-Documents are all pushed to GitHub
+-I'd love to put all the code files into their own folders, but might bork includes
+  -Gonna try it anyway
+  -Yup, compile errors, but only in the src folder, fortunately
+  -#include "filepath.h", so easy corrections using relative paths
+-With this, I think I'm done
+-Time for one final check
+<<00:17

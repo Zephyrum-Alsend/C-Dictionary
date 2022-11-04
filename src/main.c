@@ -7,7 +7,7 @@
 **********************************************************************/
 
 // #include "test.h"
-#include "submain.h"
+#include "../header/submain.h"
 
 // const int PARSE_FAIL = 0;
 

@@ -3,7 +3,7 @@ This is the equivalent of scratch paper. It's not meant to be neat.
 void test() functions as main().
 */
 
-#include "test.h"
+#include "../header/test.h"
 
 void test() {
   // printf("Hello World\n");
