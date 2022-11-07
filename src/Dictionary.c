@@ -29,15 +29,21 @@ dict* dictInit(const char* string, dict heap[], size_t size) {
   char* sent = sentence;
   char* word;
 
+  int idx = 0;
   for(int i = 0; i < size; i++) {
     // Assumes size is also the word count (see Parser::countWords())
     word = strsep(&sent, " ");
-    heap[i].length = strlen(word);
-    strncpy(heap[i].word, word, WORD_SIZE);
-    heap[i].word[4] = '\0';
-    heap[i].next = &heap[i+1];
+    
+    if(strlen(word) == 0) { continue; } // Skip empty words
+    
+    heap[idx].length = strlen(word);
+    strncpy(heap[idx].word, word, WORD_SIZE);
+    heap[idx].word[4] = '\0';
+    heap[idx].next = &heap[idx+1];
+    idx++;
   }
-  heap[size-1].next = NULL;
+  if(idx == 0) { return NULL; }
+  heap[idx-1].next = NULL;
 
   dict* head = &heap[0];
   return head;
@@ -65,7 +71,23 @@ void dictClear(dict heap[], size_t size) {
   }
 }
 
+/*
+dictNodeDel()
+Given a pointer to the node of a dictionary, NULLs the entry.
+
+void dictBubbleSort(dict* node);
+node    --> pointer to a dict struct.
+
+This function sets all elements of the given dict struct to 0 / '\0' / NULL.
+Will return immediately if given a NULL pointer.
+
+Returns nothing. Modifies node.
+
+Lucas Crockett
+2022.11.06
+*/
 void dictNodeDel(dict* node) {
+  if( node == NULL ) { return; }
   node->length = 0;
   node->word[0] = '\0';
   node->next = NULL;
@@ -92,6 +114,7 @@ Lucas Crockett
 2022.11.02
 */
 dict* dictSearch(const char* string, dict* head, bool caseSensitive) {
+  if( head == NULL ) { return NULL; }
   int len = strlen(string);
   char comp[WORD_SIZE+1];
   strncpy(comp, string, WORD_SIZE+1);
@@ -200,6 +223,7 @@ Lucas Crockett
 2022.11.02
 */
 dict* dictBubbleSort(dict* head) {
+  if( head == NULL ) { return NULL; }
   dict* node;
   dict* prev;
   bool swapped;
@@ -244,7 +268,25 @@ dict* dictBubbleSort(dict* head) {
   return head;
 }
 
+/*
+dictRmvDup()
+Given the head of a sorted dictionary, removes duplicate entries.
+
+void dictRmvDup(dict* head);
+head    --> pointer to the start of the dictionary.
+
+This function iterates over the dictionary, comparing adjacent elements and unlinking
+duplicates by setting node->next to node->next->next, then deleting the unlinked
+node. This will create gaps in the heap, so it is recommended to run dictDefrag() 
+afterwards.
+
+Returns nothing. Modifies linked list.
+
+Lucas Crockett
+2022.11.06
+*/
 void dictRmvDup(dict* head) {
+  // If head == NULL, while() never runs
   dict* node = head;
   dict* next = NULL;
   
@@ -262,6 +304,32 @@ void dictRmvDup(dict* head) {
   }
 }
 
+/*
+dictDefrag()
+Given the head of a dictionary and its heap, defragments the heap.
+
+unsigned int dictDefrag(dict* head, dict heap[], size_t size);
+head    --> pointer to the start of the dictionary.
+heap    --> array containing the dictionary.
+size    --> number of elements heap can contain.
+
+This function returns early if there's nothing to defrag (NULL head or size 1 heap). 
+Uses the head to iterate over the linked list, counting the nodes. If the nodes are
+too many to fit into heap, will print an error message and return the size of heap.
+The function then iterates over the linked list again, copying the nodes into a 
+local array. This ensures the elements within the array are sorted according to the 
+linked list's order. The heap is then overwritten with the contents of the local
+array. The total node count is returned.
+
+The address of the new head is at &heap[0], however this cannot be changed by the 
+function. It is strongly recommended to if( heapIdx != 0 ) { head = &heap[0]; }
+after calling this function.
+
+Returns an unsigned integer indicating the total node count.
+
+Lucas Crockett
+2022.11.06
+*/
 unsigned int dictDefrag(dict* head, dict heap[], size_t size) {
   // Shortcuts: if nothing to defrag, don't
   if( head == NULL ) { return 0; }
@@ -271,7 +339,7 @@ unsigned int dictDefrag(dict* head, dict heap[], size_t size) {
   int count = 0;
   dict* node = head;
   while( node != NULL ) {
-    if( node->length != 0 ) { count++; }
+    count++;
     node = node->next;
   }
   // Return w/ error if actual count won't fit in the specified heap size
@@ -279,22 +347,16 @@ unsigned int dictDefrag(dict* head, dict heap[], size_t size) {
     printf("\nERR: Heap size too small to fit dictionary. Defrag halted.\nSize: %i\tNodes: %i\n", size, count);
     return size;
   }
-  if( count == 0 ) {
-    printf("\nWARNING: Dictionary contains no words.\n");
-    return count;
-  }
 
   // Copy linked list into temp array, in order
   dict temp[count];
   count = 0; // Reuse as index
   node = head;
   while( node != NULL ) {
-    if( node->length != 0 ) {
-      temp[count].length = node->length;
-      strcpy(temp[count].word, node->word);
-      temp[count].next = NULL;
-      count++;
-    }
+    temp[count].length = node->length;
+    strcpy(temp[count].word, node->word);
+    temp[count].next = NULL;
+    count++;
     
     node = node->next;
   }

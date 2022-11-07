@@ -528,3 +528,16 @@ Not-so-challenges:
 -Problem is in dictDefrag(), thanks printf()
 -Didn't account for if ALL elements are length 0 in dictionary
 <<02:23
+
+2022.11.07
+>>08:50
+-Checking everything can handle NULL inputs
+-Considering moving whitespace removal to dictInit(), as it'd save cycles later.
+<<09:07
+>>10:47
+-dictInit() will now prevent creation of length 0 entries
+  -Should dictDefrag() continue to check for 0 entries?
+  -Removed 0 entry checks from dictDefrag(), should be faster now
+-oh yeah, documentation
+  -docs updated, can't think of anything to add/fix for now
+<<11:30

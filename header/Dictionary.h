@@ -37,7 +37,7 @@ dict* dictBubbleSort(dict* head);
 // Removes duplicates from a sorted dictionary.
 void dictRmvDup(dict* head);
 
-// Relocates entries in heap to shift all NULL entries to the back.
+// Reconstructs the heap so all entries are contiguous in memory.
 unsigned int dictDefrag(dict* head, dict heap[], size_t size);
 
 // Given a dictionary entry, prints its contents.

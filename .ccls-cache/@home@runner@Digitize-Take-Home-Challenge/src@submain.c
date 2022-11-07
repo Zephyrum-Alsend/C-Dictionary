@@ -61,7 +61,7 @@ void run() {
   heapIdx = dictDefrag(head, heap, heapIdx+wordCnt);
   // Head has to be reset after calling dictDefrag()
   if( heapIdx != 0 ) { head = &heap[0]; }
-  else { head = NULL; }
+  // else { head = NULL; }
         
   // Main menu loop
   while( userInt != 6 ) {
@@ -97,7 +97,7 @@ void run() {
         heapIdx = dictDefrag(head, heap, heapIdx+wordCnt);
         // Head has to be reset after calling dictDefrag()
         if( heapIdx != 0 ) { head = &heap[0]; }
-        else { head = NULL; }
+        // else { head = NULL; }
         break;
       
       // Clear Data

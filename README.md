@@ -8,7 +8,7 @@ On startup, the program will greet the user with
 
 , waiting for user input terminated by a newline (hitting Enter on standard keyboards).
 The program will then use this line of text to initialize a dictionary, a linked list of dict structs. Each dict contains the first four characters of a word, its
-total length, and a pointer to the next dict struct in the list.
+total length, and a pointer to the next dict struct in the list. Words are defined as whitespace separated strings.
 Dictionaries are automatically sorted alphabetically and duplicates removed.
 
 
