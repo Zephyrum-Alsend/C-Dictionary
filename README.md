@@ -8,8 +8,8 @@ On startup, the program will greet the user with
 
 , waiting for user input terminated by a newline (hitting Enter on standard keyboards).
 The program will then use this line of text to initialize a dictionary, a linked list of dict structs. Each dict contains the first four characters of a word, its
-total length, and a pointer to the next dict struct in the list. A dictionary can contain duplicate dicts.
-Dictionaries are automatically sorted alphabetically.
+total length, and a pointer to the next dict struct in the list.
+Dictionaries are automatically sorted alphabetically and duplicates removed.
 
 
 After initializing the dictionary, the program prompts the user for input again, but with the following message:
@@ -96,4 +96,4 @@ read, but all input after the limit is truncated. If the buffer limit is reached
 
 "Buffer reached, input may be partially ignored.\n"
 
-will be printed. Do note the wording "reached", as this can be triggered by inputting exactly enough to fill the buffer. Hence the warning states "May".
+will be printed. Do note the wording "reached", as this can be triggered by inputting exactly enough to fill the buffer. Hence the warning states "may".

@@ -17,6 +17,9 @@ dict* dictInit(const char* string, dict heap[], size_t size);
 // Given a dict aray and its size, clears the data inside.
 void dictClear(dict heap[], size_t size);
 
+// Nulls the passed dict struct.
+void dictNodeDel(dict* node);
+
 // Given a string and dictionary head, will return a pointer to the matching 
 // dictionary entry. Can be case insensitive by setting caseSensitive to false.
 dict* dictSearch(const char* string, dict* head, bool caseSensitive);
@@ -30,6 +33,12 @@ dict* dictAppend(dict* head1, dict* head2);
 
 // Given the head of a dictionary, sorts it alphabetically. Returns the new head.
 dict* dictBubbleSort(dict* head);
+
+// Removes duplicates from a sorted dictionary.
+void dictRmvDup(dict* head);
+
+// Relocates entries in heap to shift all NULL entries to the back.
+unsigned int dictDefrag(dict* head, dict heap[], size_t size);
 
 // Given a dictionary entry, prints its contents.
 void dictPrint(dict* entry);

@@ -32,7 +32,6 @@ dict* dictInit(const char* string, dict heap[], size_t size) {
   for(int i = 0; i < size; i++) {
     // Assumes size is also the word count (see Parser::countWords())
     word = strsep(&sent, " ");
-    if( strlen(word) == 0 ) { continue; }
     heap[i].length = strlen(word);
     strncpy(heap[i].word, word, WORD_SIZE);
     heap[i].word[4] = '\0';
@@ -62,10 +61,14 @@ Lucas Crockett
 */
 void dictClear(dict heap[], size_t size) {
   for(int i = 0; i < size; i++) {
-    heap[i].length = 0;
-    heap[i].word[0] = '\0';
-    heap[i].next = NULL;
+    dictNodeDel(&heap[i]);
   }
+}
+
+void dictNodeDel(dict* node) {
+  node->length = 0;
+  node->word[0] = '\0';
+  node->next = NULL;
 }
 
 /*
@@ -239,6 +242,76 @@ dict* dictBubbleSort(dict* head) {
   } while( swapped );
   
   return head;
+}
+
+void dictRmvDup(dict* head) {
+  dict* node = head;
+  dict* next = NULL;
+  
+  while( node != NULL ) {
+    next = node->next;
+    if( dictCompare(node, next) == 0 ) {
+      node->next = node->next->next;
+      
+      dictNodeDel(next);
+      
+      continue; // Don't increment node pointer
+    }
+
+    node = node->next;
+  }
+}
+
+unsigned int dictDefrag(dict* head, dict heap[], size_t size) {
+  // Shortcuts: if nothing to defrag, don't
+  if( head == NULL ) { return 0; }
+  if( size < 2 ) { return size; }
+
+  // Count how many elements are actually in the linked list
+  int count = 0;
+  dict* node = head;
+  while( node != NULL ) {
+    if( node->length != 0 ) { count++; }
+    node = node->next;
+  }
+  // Return w/ error if actual count won't fit in the specified heap size
+  if( count > size ) {
+    printf("\nERR: Heap size too small to fit dictionary. Defrag halted.\nSize: %i\tNodes: %i\n", size, count);
+    return size;
+  }
+  if( count == 0 ) {
+    printf("\nWARNING: Dictionary contains no words.\n");
+    return count;
+  }
+
+  // Copy linked list into temp array, in order
+  dict temp[count];
+  count = 0; // Reuse as index
+  node = head;
+  while( node != NULL ) {
+    if( node->length != 0 ) {
+      temp[count].length = node->length;
+      strcpy(temp[count].word, node->word);
+      temp[count].next = NULL;
+      count++;
+    }
+    
+    node = node->next;
+  }
+
+  // Copy temp array into heap and relink
+  for(int i = 0; i < count; i++) {
+    heap[i].length = temp[i].length;
+    strcpy(heap[i].word, temp[i].word);
+    heap[i].next = &heap[i+1];
+  }
+  heap[count-1].next = NULL;
+  // Why not update head here?
+  // It gets assigned correctly here, but changes to the wrong index out there
+  // So for now, the caller has to handle updating the head
+
+  // Return true element count
+  return count;
 }
 
 /*

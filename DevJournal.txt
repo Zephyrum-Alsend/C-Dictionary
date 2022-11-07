@@ -462,3 +462,69 @@ Not-so-challenges:
 -As I've already submitted, I'll be making these changes in a new branch
 -Addressed length 0 entries
 <<11:09
+
+2022.11.06
+>>18:49
+-Could integrate anti-duplication check into BubbleSort, it already compares adjacent entries
+  -That'd be overloading the function, though. It needs to just sort.
+-dictRmvDup() is born.
+-Tested and dictRmvDup() works fine but my anti-0-length-entry measure isn't right.
+  -It is preventing 0 entries, but I didn't account for the offset that'd cause when
+   linking from then on. List links are borked.
+-I'll also need to add a function to defragment the heap.
+-...rather than think about a way to integrate it into dictInit(), I'll let dictDefrag() handle 0 entries
+  -I'll using length == 0 to check for NULL entries anyway, so two birds one func
+-While I know what I want dictDefrag() to do, I don't know how I want it to do it
+  -It needs to shift all entries so there's no gaps between any
+  -But what are some efficient ways of doing that?
+    -Can go through the list, swap NULL adjacent elements until no gaps
+    -Copy non-NULL elements into a fresh array, then overwrite original array
+<<19:33
+>>22:40
+-Implementing the former, swapping elements
+  -Both methods would require comparisons, so I don't see a particular speed gain
+   in exchange for the significant memory increase.
+-If it were singular NULLs, we could bubble them to the end, but what about swaths?
+-For now, just shift the entire remainder of the array down
+<<22:58
+>>00:13
+-Current plan won't work because it doesn't account for relinking the list
+-Have a new plan, gonna implement then explain
+  -an hour on the throne of thought helped
+-We copy the linked list into a temporary array, then overwrite the heap with the
+ temp array, then relink the list.
+  -The temp array will have all the elements in order, so links won't be wrong
+  -Linking occurs after overwriting heap, so memory addresses are right
+-Tested and it's not quite working. Allowed a 0 entry through and also causes seg faults
+-Debating going to sleep right now, but I'll give the function a once over
+  -I forgt node = node->next; in a while loop again...
+-Mostly works on duplicates, but hangs on repeated whitespace
+-Further tests shows odd behaviour, introducing duplicates or deleting valid entries.
+-I should call it a night here. As much as I want it to work, see late night coding history.
+<<00:55
+>>01:24
+-It occurred to me that I should have moved count++; to inside the if()
+-Things still aren't perfect, adding dictPrint()s
+-Inside the function, things seem to be going perfectly
+-Outside, the head is wrong
+  -The head INSIDE is set correctly, but after the return statement, it changes
+  -Have to hard set head OUTSIDE to &heap[0];
+-So far, everything's fine
+-A small note on the implementation:
+  -I loop through the list twice
+    -once to get the element count, to prevent out of bounds indexes
+    -once to copy elements into the temp array
+  -I could do both in one loop, but I'm unsure which method is faster
+    -I'd be comparing count to size every node rather than just once
+    -Doing it twice lets me give more accurate error reporting, so eh
+-Previous problem cases are no longer problems
+-Gonna do detailed docs tomorrow, I accomplished what I stayed up for
+-heapIdx is just elemCnt, two vars are never used in the same line save for heapIdx = elemCnt;
+  -Deleted elemCnt
+  -Renamed subElemCnt to wordCnt
+-Converted all static strings in submain.c to const char* from char*
+-If a single space is entered for the initial string (" "), seg fault
+  -Not a problem when appending entries
+-Problem is in dictDefrag(), thanks printf()
+-Didn't account for if ALL elements are length 0 in dictionary
+<<02:23
