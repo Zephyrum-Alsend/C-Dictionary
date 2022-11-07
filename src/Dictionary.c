@@ -75,7 +75,7 @@ void dictClear(dict heap[], size_t size) {
 dictNodeDel()
 Given a pointer to the node of a dictionary, NULLs the entry.
 
-void dictBubbleSort(dict* node);
+void dictNodDel(dict* node);
 node    --> pointer to a dict struct.
 
 This function sets all elements of the given dict struct to 0 / '\0' / NULL.
